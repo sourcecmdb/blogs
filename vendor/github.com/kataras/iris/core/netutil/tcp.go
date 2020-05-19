@@ -2,13 +2,12 @@ package netutil
 
 import (
 	"crypto/tls"
-	"errors"
-	"fmt"
 	"net"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/kataras/iris/core/errors"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -23,19 +22,23 @@ type tcpKeepAliveListener struct {
 }
 
 // Accept accepts tcp connections aka clients.
-func (l tcpKeepAliveListener) Accept() (net.Conn, error) {
+func (l tcpKeepAliveListener) Accept() (c net.Conn, err error) {
 	tc, err := l.AcceptTCP()
 	if err != nil {
-		return tc, err
+		return
 	}
-	if err = tc.SetKeepAlive(true); err != nil {
-		return tc, err
-	}
-	if err = tc.SetKeepAlivePeriod(3 * time.Minute); err != nil {
-		return tc, err
-	}
+	tc.SetKeepAlive(true)
+	tc.SetKeepAlivePeriod(3 * time.Minute)
 	return tc, nil
 }
+
+var (
+	errPortAlreadyUsed = errors.New("port is already used")
+	errRemoveUnix      = errors.New("unexpected error when trying to remove unix socket file. Addr: %s | Trace: %s")
+	errChmod           = errors.New("cannot chmod %#o for %q: %s")
+	errCertKeyMissing  = errors.New("you should provide certFile and keyFile for TLS/SSL")
+	errParseTLS        = errors.New("couldn't load TLS, certFile=%q, keyFile=%q. Trace: %s")
+)
 
 // TCP returns a new tcp(ipv6 if supported by network) and an error on failure.
 func TCP(addr string) (net.Listener, error) {
@@ -65,16 +68,16 @@ func TCPKeepAlive(addr string) (ln net.Listener, err error) {
 // UNIX returns a new unix(file) Listener.
 func UNIX(socketFile string, mode os.FileMode) (net.Listener, error) {
 	if errOs := os.Remove(socketFile); errOs != nil && !os.IsNotExist(errOs) {
-		return nil, fmt.Errorf("%s: %w", socketFile, errOs)
+		return nil, errRemoveUnix.Format(socketFile, errOs.Error())
 	}
 
 	l, err := net.Listen("unix", socketFile)
 	if err != nil {
-		return nil, fmt.Errorf("port already in use: %w", err)
+		return nil, errPortAlreadyUsed.AppendErr(err)
 	}
 
 	if err = os.Chmod(socketFile, mode); err != nil {
-		return nil, fmt.Errorf("cannot chmod %#o for %q: %w", mode, socketFile, err)
+		return nil, errChmod.Format(mode, socketFile, err.Error())
 	}
 
 	return l, nil
@@ -82,13 +85,14 @@ func UNIX(socketFile string, mode os.FileMode) (net.Listener, error) {
 
 // TLS returns a new TLS Listener and an error on failure.
 func TLS(addr, certFile, keyFile string) (net.Listener, error) {
+
 	if certFile == "" || keyFile == "" {
-		return nil, errors.New("empty certFile or KeyFile")
+		return nil, errCertKeyMissing
 	}
 
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
-		return nil, err
+		return nil, errParseTLS.Format(certFile, keyFile, err)
 	}
 
 	return CERT(addr, cert)

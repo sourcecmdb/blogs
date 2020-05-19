@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kataras/iris/v12/cache/client/rule"
-	"github.com/kataras/iris/v12/cache/entry"
-	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/cache/client/rule"
+	"github.com/kataras/iris/cache/entry"
+	"github.com/kataras/iris/context"
 )
 
 // Handler the local cache service handler contains
@@ -30,7 +30,7 @@ func NewHandler(expiration time.Duration) *Handler {
 	return &Handler{
 		rule:       DefaultRuleSet,
 		expiration: expiration,
-		entries:    make(map[string]*entry.Entry),
+		entries:    make(map[string]*entry.Entry, 0),
 	}
 }
 
@@ -71,6 +71,8 @@ func parseLifeChanger(ctx context.Context) entry.LifeChanger {
 	}
 }
 
+///TODO: debug this and re-run the parallel tests on larger scale,
+// because I think we have a bug here when `core/router#StaticWeb` is used after this middleware.
 func (h *Handler) ServeHTTP(ctx context.Context) {
 	// check for pre-cache validators, if at least one of them return false
 	// for this specific request, then skip the whole cache
@@ -123,7 +125,7 @@ func (h *Handler) ServeHTTP(ctx context.Context) {
 		// if it's expired, then execute the original handler
 		// with our custom response recorder response writer
 		// because the net/http doesn't give us
-		// a builtin way to get the status code & body
+		// a built'n way to get the status code & body
 		recorder := ctx.Recorder()
 		bodyHandler(ctx)
 
@@ -168,4 +170,5 @@ func (h *Handler) ServeHTTP(ctx context.Context) {
 	// fmt.Printf("key: %s\n", key)
 	// fmt.Printf("write content type: %s\n", response.Headers()["ContentType"])
 	// fmt.Printf("write body len: %d\n", len(response.Body()))
+
 }

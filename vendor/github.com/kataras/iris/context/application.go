@@ -17,9 +17,6 @@ type Application interface {
 	// Logger returns the golog logger instance(pointer) that is being used inside the "app".
 	Logger() *golog.Logger
 
-	// I18nReadOnly returns the i18n's read-only features.
-	I18nReadOnly() I18nReadOnly
-
 	// View executes and write the result of a template file to the writer.
 	//
 	// Use context.View to render templates to the client instead.
@@ -60,8 +57,4 @@ type Application interface {
 	// RouteExists reports whether a particular route exists
 	// It will search from the current subdomain of context's host, if not inside the root domain.
 	RouteExists(ctx Context, method, path string) bool
-	// FindClosestPaths returns a list of "n" paths close to "path" under the given "subdomain".
-	//
-	// Order may change.
-	FindClosestPaths(subdomain, searchPath string, n int) []string
 }

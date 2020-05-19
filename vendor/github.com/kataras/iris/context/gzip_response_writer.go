@@ -18,7 +18,7 @@ type compressionPool struct {
 //  |GZIP raw io.writer, our gzip response writer will use that. |
 //  +------------------------------------------------------------+
 
-// default writer pool with Compressor's level set to -1
+// default writer pool with Compressor's level setted to -1
 var gzipPool = &compressionPool{Level: -1}
 
 // acquireGzipWriter prepares a gzip writer and returns it.
@@ -133,6 +133,7 @@ func (w *GzipResponseWriter) WriteString(s string) (n int, err error) {
 		if w.ResponseWriter.Header()[ContentTypeHeaderKey] == nil {
 			w.ResponseWriter.Header().Set(ContentTypeHeaderKey, ContentTextHeaderValue)
 		}
+
 	}
 	return
 }
@@ -186,7 +187,7 @@ func AddGzipHeaders(w ResponseWriter) {
 // FlushResponse validates the response headers in order to be compatible with the gzip written data
 // and writes the data to the underline ResponseWriter.
 func (w *GzipResponseWriter) FlushResponse() {
-	_, _ = w.WriteNow(w.chunks)
+	w.WriteNow(w.chunks)
 	w.ResponseWriter.FlushResponse()
 }
 

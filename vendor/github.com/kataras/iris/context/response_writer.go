@@ -2,12 +2,13 @@ package context
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"sync"
+
+	"github.com/kataras/iris/core/errors"
 )
 
 // ResponseWriter interface is used by the context to serve an HTTP handler to
@@ -24,8 +25,6 @@ type ResponseWriter interface {
 	http.ResponseWriter
 	http.Flusher
 	http.Hijacker
-	// Note:
-	// The http.CloseNotifier interface is deprecated. New code should use Request.Context instead.
 	http.CloseNotifier
 	http.Pusher
 
@@ -41,9 +40,6 @@ type ResponseWriter interface {
 	//
 	// Here is the place which we can make the last checks or do a cleanup.
 	EndResponse()
-
-	// IsHijacked reports whether this response writer's connection is hijacked.
-	IsHijacked() bool
 
 	// Writef formats according to a format specifier and writes to the response.
 	//
@@ -61,7 +57,7 @@ type ResponseWriter interface {
 	// Written should returns the total length of bytes that were being written to the client.
 	// In addition iris provides some variables to help low-level actions:
 	// NoWritten, means that nothing were written yet and the response writer is still live.
-	// StatusCodeWritten, means that status code was written but no other bytes are written to the client, response writer may closed.
+	// StatusCodeWritten, means that status code were written but no other bytes are written to the client, response writer may closed.
 	// > 0 means that the reply was written and it's the total number of bytes were written.
 	Written() int
 
@@ -71,7 +67,7 @@ type ResponseWriter interface {
 
 	// SetBeforeFlush registers the unique callback which called exactly before the response is flushed to the client.
 	SetBeforeFlush(cb func())
-	// GetBeforeFlush returns (not execute) the before flush callback, or nil if not set by SetBeforeFlush.
+	// GetBeforeFlush returns (not execute) the before flush callback, or nil if not setted by SetBeforeFlush.
 	GetBeforeFlush() func()
 	// FlushResponse should be called only once before EndResponse.
 	// it tries to send the status code if not sent already
@@ -101,7 +97,6 @@ type ResponseWriter interface {
 	Flusher() (http.Flusher, bool)
 
 	// CloseNotifier indicates if the protocol supports the underline connection closure notification.
-	// Warning: The http.CloseNotifier interface is deprecated. New code should use Request.Context instead.
 	CloseNotifier() (http.CloseNotifier, bool)
 }
 
@@ -200,15 +195,6 @@ func (w *responseWriter) tryWriteHeader() {
 	}
 }
 
-// IsHijacked reports whether this response writer's connection is hijacked.
-func (w *responseWriter) IsHijacked() bool {
-	// Note:
-	// A zero-byte `ResponseWriter.Write` on a hijacked connection will
-	// return `http.ErrHijacked` without any other side effects.
-	_, err := w.ResponseWriter.Write(nil)
-	return err == http.ErrHijacked
-}
-
 // Write writes to the client
 // If WriteHeader has not yet been called, Write calls
 // WriteHeader(http.StatusOK) before writing the data. If the Header
@@ -300,6 +286,7 @@ func (w *responseWriter) WriteTo(to ResponseWriter) {
 				}
 			}
 		}
+
 	}
 	// the body is not copied, this writer doesn't support recording
 }

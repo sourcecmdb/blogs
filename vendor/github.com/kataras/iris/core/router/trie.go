@@ -3,7 +3,7 @@ package router
 import (
 	"strings"
 
-	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/context"
 )
 
 const (
@@ -93,6 +93,12 @@ type trie struct {
 	// subdomain is empty for default-hostname routes,
 	// ex: mysubdomain.
 	subdomain string
+}
+
+func newTrie() *trie {
+	return &trie{
+		root: newTrieNode(),
+	}
 }
 
 const (

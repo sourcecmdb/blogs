@@ -41,7 +41,7 @@ type ConfigurationReadOnly interface {
 	// is disabled.
 	//
 	// By-default io.ReadAll` is used to read the body from the `context.Request.Body which is an `io.ReadCloser`,
-	// if this field set to true then a new buffer will be created to read from and the request body.
+	// if this field setted to true then a new buffer will be created to read from and the request body.
 	// The body will not be changed and existing data before the
 	// context.UnmarshalBody/ReadJSON/ReadXML will be not consumed.
 	GetDisableBodyConsumptionOnUnmarshal() bool
@@ -67,9 +67,13 @@ type ConfigurationReadOnly interface {
 	// Defaults to 32MB or 32 << 20 if you prefer.
 	GetPostMaxMemory() int64
 
-	// GetTranslateLanguageContextKey returns the configuration's LocaleContextKey value,
-	// used for i18n. Defaults to "iris.locale".
-	GetLocaleContextKey() string
+	// GetTranslateLanguageContextKey returns the configuration's TranslateFunctionContextKey value,
+	// used for i18n.
+	GetTranslateFunctionContextKey() string
+
+	// GetTranslateLanguageContextKey returns the configuration's TranslateLanguageContextKey value,
+	// used for i18n.
+	GetTranslateLanguageContextKey() string
 
 	// GetViewLayoutContextKey returns the key of the context's user values' key
 	// which is being used to set the template

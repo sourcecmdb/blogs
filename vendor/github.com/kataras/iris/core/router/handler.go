@@ -1,16 +1,16 @@
 package router
 
 import (
+	"html"
 	"net/http"
 	"sort"
 	"strings"
 
-	"github.com/kataras/iris/v12/context"
-	"github.com/kataras/iris/v12/core/errgroup"
-	"github.com/kataras/iris/v12/core/netutil"
-	macroHandler "github.com/kataras/iris/v12/macro/handler"
-
 	"github.com/kataras/golog"
+
+	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/core/errors"
+	"github.com/kataras/iris/core/netutil"
 )
 
 // RequestHandler the middle man between acquiring a context and releasing it.
@@ -42,8 +42,7 @@ func (h *routerHandler) getTree(method, subdomain string) *trie {
 	return nil
 }
 
-// AddRoute registers a route. See `Router.AddRouteUnsafe`.
-func (h *routerHandler) AddRoute(r *Route) error {
+func (h *routerHandler) addRoute(r *Route) error {
 	var (
 		routeName = r.Name
 		method    = r.Method
@@ -80,18 +79,10 @@ type RoutesProvider interface { // api builder
 }
 
 func (h *routerHandler) Build(provider RoutesProvider) error {
-	h.trees = h.trees[0:0] // reset, inneed when rebuilding.
-	rp := errgroup.New("Routes Builder")
 	registeredRoutes := provider.GetRoutes()
+	h.trees = h.trees[0:0] // reset, inneed when rebuilding.
 
-	// before sort.
-	for _, r := range registeredRoutes {
-		if r.topLink != nil {
-			bindMultiParamTypesHandler(r.topLink, r)
-		}
-	}
-
-	// sort, subdomains go first.
+	// sort, subdomains goes first.
 	sort.Slice(registeredRoutes, func(i, j int) bool {
 		first, second := registeredRoutes[i], registeredRoutes[j]
 		lsub1 := len(first.Subdomain)
@@ -120,64 +111,39 @@ func (h *routerHandler) Build(provider RoutesProvider) error {
 
 		// the rest are handled inside the node
 		return lsub1 > lsub2
+
 	})
 
+	rp := errors.NewReporter()
+
 	for _, r := range registeredRoutes {
+		// build the r.Handlers based on begin and done handlers, if any.
+		r.BuildHandlers()
+
 		if r.Subdomain != "" {
 			h.hosts = true
 		}
 
-		if r.topLink == nil {
-			// build the r.Handlers based on begin and done handlers, if any.
-			r.BuildHandlers()
-
-			// the only "bad" with this is if the user made an error
-			// on route, it will be stacked shown in this build state
-			// and no in the lines of the user's action, they should read
-			// the docs better. Or TODO: add a link here in order to help new users.
-			if err := h.AddRoute(r); err != nil {
-				// node errors:
-				rp.Addf("%s: %w", r.String(), err)
-				continue
-			}
+		// the only "bad" with this is if the user made an error
+		// on route, it will be stacked shown in this build state
+		// and no in the lines of the user's action, they should read
+		// the docs better. Or TODO: add a link here in order to help new users.
+		if err := h.addRoute(r); err != nil {
+			// node errors:
+			rp.Add("%v -> %s", err, r.String())
+			continue
 		}
-
-		golog.Debugf(r.Trace()) // keep log different parameter types in the same path as different routes.
+		golog.Debugf(r.Trace())
 	}
 
-	return errgroup.Check(rp)
-}
-
-func bindMultiParamTypesHandler(top *Route, r *Route) {
-	r.BuildHandlers()
-
-	h := r.Handlers[1:] // remove the macro evaluator handler as we manually check below.
-	f := macroHandler.MakeFilter(r.tmpl)
-	if f == nil {
-		return // should never happen, previous checks made to set the top link.
-	}
-
-	decisionHandler := func(ctx context.Context) {
-		currentRouteName := ctx.RouteName()
-		if f(ctx) {
-			ctx.SetCurrentRouteName(r.Name)
-			ctx.HandlerIndex(0)
-			ctx.Do(h)
-			return
-		}
-
-		ctx.SetCurrentRouteName(currentRouteName)
-		ctx.StatusCode(http.StatusOK)
-		ctx.Next()
-	}
-
-	r.topLink.beginHandlers = append(context.Handlers{decisionHandler}, r.topLink.beginHandlers...)
+	return rp.Return()
 }
 
 func (h *routerHandler) HandleRequest(ctx context.Context) {
 	method := ctx.Method()
 	path := ctx.Path()
 	if !ctx.Application().ConfigurationReadOnly().GetDisablePathCorrection() {
+
 		if len(path) > 1 && strings.HasSuffix(path, "/") {
 			// Remove trailing slash and client-permanent rule for redirection,
 			// if confgiuration allows that and path has an extra slash.
@@ -201,6 +167,17 @@ func (h *routerHandler) HandleRequest(ctx context.Context) {
 				}
 
 				ctx.Redirect(url, http.StatusMovedPermanently)
+
+				// RFC2616 recommends that a short note "SHOULD" be included in the
+				// response because older user agents may not understand 301/307.
+				// Shouldn't send the response for POST or HEAD; that leaves GET.
+				if method == http.MethodGet {
+					note := "<a href=\"" +
+						html.EscapeString(url) +
+						"\">Moved Permanently</a>.\n"
+
+					ctx.ResponseWriter().WriteString(note)
+				}
 				return
 			}
 

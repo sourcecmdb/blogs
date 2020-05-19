@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -26,15 +25,15 @@ type AmberEngine struct {
 	templateCache map[string]*template.Template
 }
 
-var _ Engine = (*AmberEngine)(nil)
+var _ Engine = &AmberEngine{}
 
 // Amber creates and returns a new amber view engine.
 func Amber(directory, extension string) *AmberEngine {
 	s := &AmberEngine{
 		directory:     directory,
 		extension:     extension,
-		templateCache: make(map[string]*template.Template),
-		funcs:         make(map[string]interface{}),
+		templateCache: make(map[string]*template.Template, 0),
+		funcs:         make(map[string]interface{}, 0),
 	}
 
 	return s
@@ -54,7 +53,7 @@ func (s *AmberEngine) Binary(assetFn func(name string) ([]byte, error), namesFn 
 	return s
 }
 
-// Reload if set to true the templates are reloading on each render,
+// Reload if setted to true the templates are reloading on each render,
 // use it when you're in development and you're boring of restarting
 // the whole app when you edit a template file.
 //
@@ -78,7 +77,7 @@ func (s *AmberEngine) AddFunc(funcName string, funcBody interface{}) {
 }
 
 // Load parses the templates to the engine.
-// It is responsible to add the necessary global functions.
+// It's alos responsible to add the necessary global functions.
 //
 // Returns an error if something bad happens, user is responsible to catch it.
 func (s *AmberEngine) Load() error {
@@ -92,12 +91,7 @@ func (s *AmberEngine) Load() error {
 	if err != nil {
 		return err
 	}
-
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return err
-	}
-
-	// change the directory field configuration, load happens after directory has been set, so we will not have any problems here.
+	// change the directory field configuration, load happens after directory has been setted, so we will not have any problems here.
 	s.directory = dir
 	return s.loadDirectory()
 }
@@ -120,7 +114,7 @@ func (s *AmberEngine) loadDirectory() error {
 		funcs[k] = v
 	}
 
-	amber.FuncMap = funcs // set the funcs
+	amber.FuncMap = funcs //set the funcs
 	opt.Ext = extension
 
 	templates, err := amber.CompileDir(dir, opt, amber.DefaultOptions) // this returns the map with stripped extension, we want extension so we copy the map
@@ -160,7 +154,7 @@ func (s *AmberEngine) loadAssets() error {
 			virtualDirectory = virtualDirectory[1:]
 		}
 	}
-	amber.FuncMap = funcs // set the funcs
+	amber.FuncMap = funcs //set the funcs
 
 	names := namesFn()
 
@@ -183,6 +177,7 @@ func (s *AmberEngine) loadAssets() error {
 
 			name := filepath.ToSlash(rel)
 			tmpl, err := amber.CompileData(buf, name, amber.DefaultOptions)
+
 			if err != nil {
 				return err
 			}

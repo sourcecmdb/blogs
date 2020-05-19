@@ -64,11 +64,13 @@ func (i *interruptListener) notifyAndFire() {
 		os.Interrupt,
 		syscall.SIGINT, // register that too, it should be ok
 		// os.Kill  is equivalent with the syscall.SIGKILL
-		// os.Kill,
-		// syscall.SIGKILL, // register that too, it should be ok
+		os.Kill,
+		syscall.SIGKILL, // register that too, it should be ok
 		// kill -SIGTERM XXXX
 		syscall.SIGTERM,
 	)
-	<-ch
-	i.FireNow()
+	select {
+	case <-ch:
+		i.FireNow()
+	}
 }

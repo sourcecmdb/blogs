@@ -3,9 +3,9 @@ package macro
 import (
 	"reflect"
 
-	"github.com/kataras/iris/v12/core/memstore"
-	"github.com/kataras/iris/v12/macro/interpreter/ast"
-	"github.com/kataras/iris/v12/macro/interpreter/parser"
+	"github.com/kataras/iris/core/memstore"
+	"github.com/kataras/iris/macro/interpreter/ast"
+	"github.com/kataras/iris/macro/interpreter/parser"
 )
 
 // Template contains a route's path full parsed template.
@@ -18,11 +18,6 @@ type Template struct {
 	// Src is the original template given by the client
 	Src    string          `json:"src"`
 	Params []TemplateParam `json:"params"`
-}
-
-// IsTrailing reports whether this Template is a traling one.
-func (t *Template) IsTrailing() bool {
-	return len(t.Params) > 0 && ast.IsTrailing(t.Params[len(t.Params)-1].Type)
 }
 
 // TemplateParam is the parsed macro parameter's template

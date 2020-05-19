@@ -1,0 +1,146 @@
+# github.com/BurntSushi/toml v0.3.1
+## explicit
+github.com/BurntSushi/toml
+# github.com/Joker/jade v1.0.0
+## explicit
+github.com/Joker/jade
+# github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398
+## explicit
+github.com/Shopify/goreferrer
+# github.com/ajg/form v1.5.1
+## explicit
+# github.com/aymerick/raymond v2.0.2+incompatible
+## explicit
+github.com/aymerick/raymond
+github.com/aymerick/raymond/ast
+github.com/aymerick/raymond/lexer
+github.com/aymerick/raymond/parser
+# github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385
+## explicit
+github.com/eknkc/amber
+github.com/eknkc/amber/parser
+# github.com/fatih/structs v1.1.0
+## explicit
+github.com/fatih/structs
+# github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
+## explicit
+github.com/flosch/pongo2
+# github.com/gavv/monotime v0.0.0-20190418164738-30dba4353424
+## explicit
+# github.com/google/go-querystring v1.0.0
+## explicit
+# github.com/gorilla/schema v1.1.0
+## explicit
+github.com/gorilla/schema
+# github.com/imkira/go-interpol v1.1.0
+## explicit
+# github.com/iris-contrib/blackfriday v2.0.0+incompatible
+## explicit
+github.com/iris-contrib/blackfriday
+# github.com/iris-contrib/formBinder v5.0.0+incompatible
+## explicit
+github.com/iris-contrib/formBinder
+# github.com/iris-contrib/go.uuid v2.0.0+incompatible
+## explicit
+github.com/iris-contrib/go.uuid
+# github.com/iris-contrib/httpexpect v1.1.2
+## explicit
+# github.com/json-iterator/go v1.1.9
+## explicit
+github.com/json-iterator/go
+# github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5
+github.com/juju/errors
+# github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88
+## explicit
+# github.com/kataras/golog v0.0.15
+## explicit
+github.com/kataras/golog
+# github.com/kataras/iris v11.1.1+incompatible
+## explicit
+github.com/kataras/iris
+github.com/kataras/iris/cache
+github.com/kataras/iris/cache/cfg
+github.com/kataras/iris/cache/client
+github.com/kataras/iris/cache/client/rule
+github.com/kataras/iris/cache/entry
+github.com/kataras/iris/cache/ruleset
+github.com/kataras/iris/cache/uri
+github.com/kataras/iris/context
+github.com/kataras/iris/core/errors
+github.com/kataras/iris/core/handlerconv
+github.com/kataras/iris/core/host
+github.com/kataras/iris/core/memstore
+github.com/kataras/iris/core/netutil
+github.com/kataras/iris/core/router
+github.com/kataras/iris/macro
+github.com/kataras/iris/macro/handler
+github.com/kataras/iris/macro/interpreter/ast
+github.com/kataras/iris/macro/interpreter/lexer
+github.com/kataras/iris/macro/interpreter/parser
+github.com/kataras/iris/macro/interpreter/token
+github.com/kataras/iris/middleware/logger
+github.com/kataras/iris/middleware/recover
+github.com/kataras/iris/view
+# github.com/kataras/pio v0.0.6
+github.com/kataras/pio
+github.com/kataras/pio/terminal
+# github.com/klauspost/compress v1.10.5
+## explicit
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/gzip
+# github.com/mattn/go-colorable v0.1.6
+## explicit
+# github.com/microcosm-cc/bluemonday v1.0.2
+## explicit
+github.com/microcosm-cc/bluemonday
+# github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
+github.com/modern-go/reflect2
+# github.com/onsi/ginkgo v1.12.1
+## explicit
+# github.com/onsi/gomega v1.10.0
+## explicit
+# github.com/ryanuber/columnize v2.1.0+incompatible
+## explicit
+github.com/ryanuber/columnize
+# github.com/sergi/go-diff v1.1.0
+## explicit
+# github.com/shurcooL/sanitized_anchor_name v1.0.0
+## explicit
+github.com/shurcooL/sanitized_anchor_name
+# github.com/smartystreets/goconvey v1.6.4
+## explicit
+# github.com/valyala/fasthttp v1.12.0
+## explicit
+# github.com/xeipuuv/gojsonschema v1.2.0
+## explicit
+# github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
+## explicit
+# github.com/yudai/gojsondiff v1.0.0
+## explicit
+# github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82
+## explicit
+# github.com/yudai/pp v2.0.1+incompatible
+## explicit
+# golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
+## explicit
+golang.org/x/crypto/acme
+golang.org/x/crypto/acme/autocert
+# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+golang.org/x/net/html
+golang.org/x/net/html/atom
+golang.org/x/net/idna
+golang.org/x/net/publicsuffix
+# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+golang.org/x/sys/unix
+# golang.org/x/text v0.3.0
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+# gopkg.in/yaml.v2 v2.3.0
+## explicit
+gopkg.in/yaml.v2
+# moul.io/http2curl v1.0.0
+## explicit

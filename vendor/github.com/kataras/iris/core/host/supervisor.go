@@ -3,7 +3,6 @@ package host
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"net"
 	"net/http"
 	"strings"
@@ -13,7 +12,8 @@ import (
 
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/kataras/iris/v12/core/netutil"
+	"github.com/kataras/iris/core/errors"
+	"github.com/kataras/iris/core/netutil"
 )
 
 // Configurator provides an easy way to modify
@@ -115,8 +115,7 @@ func (su *Supervisor) newListener() (net.Listener, error) {
 	// restarts we may want for the server.
 	//
 	// User still be able to call .Serve instead.
-	// l, err := netutil.TCPKeepAlive(su.Server.Addr)
-	l, err := netutil.TCP(su.Server.Addr)
+	l, err := netutil.TCPKeepAlive(su.Server.Addr)
 	if err != nil {
 		return nil, err
 	}
@@ -194,8 +193,12 @@ func (su *Supervisor) supervise(blockFunc func() error) error {
 	su.notifyErr(err)
 
 	if su.isWaiting() {
-		for range su.unblockChan {
-			break
+	blockStatement:
+		for {
+			select {
+			case <-su.unblockChan:
+				break blockStatement
+			}
 		}
 	}
 
@@ -257,7 +260,7 @@ func (su *Supervisor) ListenAndServeTLS(certFile string, keyFile string) error {
 	}
 
 	if su.Server.TLSConfig == nil {
-		return errors.New("empty certFile or keyFile and Server.TLSConfig")
+		return errors.New("certFile or keyFile missing")
 	}
 
 	return su.supervise(func() error { return su.Server.ListenAndServeTLS("", "") })

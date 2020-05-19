@@ -1,7 +1,7 @@
 package rule
 
 import (
-	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/context"
 )
 
 // chainedRule is a Rule with next Rule
@@ -36,6 +36,7 @@ func Chained(rule Rule, next ...Rule) Rule {
 	}
 
 	return c
+
 }
 
 // Claim validator

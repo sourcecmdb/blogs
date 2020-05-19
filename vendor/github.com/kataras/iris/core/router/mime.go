@@ -542,7 +542,7 @@ var types = map[string]string{
 func init() {
 	for ext, typ := range types {
 		// skip errors
-		_ = mime.AddExtensionType(ext, typ)
+		mime.AddExtensionType(ext, typ)
 	}
 }
 
@@ -581,6 +581,7 @@ func TypeByExtension(ext string) (typ string) {
 
 	// mime.TypeByExtension returns as text/plain; | charset=utf-8 the static .js (not always)
 	if ext == ".js" && (typ == "text/plain" || typ == "text/plain; charset=utf-8") {
+
 		if ext == ".js" {
 			typ = "application/javascript"
 		}

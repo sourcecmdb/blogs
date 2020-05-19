@@ -10,32 +10,35 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
-// HTMLEngine contains the html view engine structure.
-type HTMLEngine struct {
-	// files configuration
-	directory string
-	extension string
-	assetFn   func(name string) ([]byte, error) // for embedded, in combination with directory & extension
-	namesFn   func() []string                   // for embedded, in combination with directory & extension
-	reload    bool                              // if true, each time the ExecuteWriter is called the templates will be reloaded, each ExecuteWriter waits to be finished before writing to a new one.
-	// parser configuration
-	options     []string // text options
-	left        string
-	right       string
-	layout      string
-	rmu         sync.RWMutex // locks for layoutFuncs and funcs
-	layoutFuncs map[string]interface{}
-	funcs       map[string]interface{}
+type (
+	// HTMLEngine contains the html view engine structure.
+	HTMLEngine struct {
+		// files configuration
+		directory string
+		extension string
+		assetFn   func(name string) ([]byte, error) // for embedded, in combination with directory & extension
+		namesFn   func() []string                   // for embedded, in combination with directory & extension
+		reload    bool                              // if true, each time the ExecuteWriter is called the templates will be reloaded, each ExecuteWriter waits to be finished before writing to a new one.
+		// parser configuration
+		options     []string // text options
+		left        string
+		right       string
+		layout      string
+		rmu         sync.RWMutex // locks for layoutFuncs and funcs
+		layoutFuncs map[string]interface{}
+		funcs       map[string]interface{}
 
-	//
-	middleware func(name string, contents []byte) (string, error)
-	Templates  *template.Template
-	//
-}
+		//
+		middleware func(name string, contents []byte) (string, error)
+		Templates  *template.Template
+		//
+	}
+)
 
-var _ Engine = (*HTMLEngine)(nil)
+var _ Engine = &HTMLEngine{}
 
 var emptyFuncs = template.FuncMap{
 	"yield": func() (string, error) {
@@ -70,8 +73,8 @@ func HTML(directory, extension string) *HTMLEngine {
 		left:        "{{",
 		right:       "}}",
 		layout:      "",
-		layoutFuncs: make(map[string]interface{}),
-		funcs:       make(map[string]interface{}),
+		layoutFuncs: make(map[string]interface{}, 0),
+		funcs:       make(map[string]interface{}, 0),
 	}
 
 	return s
@@ -91,7 +94,7 @@ func (s *HTMLEngine) Binary(assetFn func(name string) ([]byte, error), namesFn f
 	return s
 }
 
-// Reload if set to true the templates are reloading on each render,
+// Reload if setted to true the templates are reloading on each render,
 // use it when you're in development and you're boring of restarting
 // the whole app when you edit a template file.
 //
@@ -129,7 +132,8 @@ func (s *HTMLEngine) Option(opt ...string) *HTMLEngine {
 }
 
 // Delims sets the action delimiters to the specified strings, to be used in
-// templates. An empty delimiter stands for the
+// subsequent calls to Parse, ParseFiles, or ParseGlob. Nested template
+// definitions will inherit the settings. An empty delimiter stands for the
 // corresponding default: {{ or }}.
 func (s *HTMLEngine) Delims(left, right string) *HTMLEngine {
 	s.left, s.right = left, right
@@ -225,12 +229,7 @@ func (s *HTMLEngine) Load() error {
 	if err != nil {
 		return err
 	}
-
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return err
-	}
-
-	// change the directory field configuration, load happens after directory has been set, so we will not have any problems here.
+	// change the directory field configuration, load happens after directory has been setted, so we will not have any problems here.
 	s.directory = dir
 	return s.loadDirectory()
 }
@@ -243,7 +242,7 @@ func (s *HTMLEngine) loadDirectory() error {
 	s.Templates = template.New(dir)
 	s.Templates.Delims(s.left, s.right)
 
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 		} else {
 			rel, err := filepath.Rel(dir, path)
@@ -273,10 +272,10 @@ func (s *HTMLEngine) loadDirectory() error {
 					templateErr = err
 					return err
 				}
-				// s.mu.Lock()
+				//s.mu.Lock()
 				// Add our funcmaps.
 				_, err = tmpl.Funcs(emptyFuncs).Funcs(s.funcs).Parse(contents)
-				// s.mu.Unlock()
+				//s.mu.Unlock()
 				if err != nil {
 					templateErr = err
 					return err
@@ -286,10 +285,6 @@ func (s *HTMLEngine) loadDirectory() error {
 		}
 		return nil
 	})
-
-	if err != nil {
-		return err
-	}
 
 	return templateErr
 }
@@ -340,7 +335,7 @@ func (s *HTMLEngine) loadAssets() error {
 			rel, err := filepath.Rel(virtualDirectory, path)
 			if err != nil {
 				templateErr = err
-				break
+				continue
 			}
 
 			// // take the current working directory
@@ -358,7 +353,7 @@ func (s *HTMLEngine) loadAssets() error {
 			buf, err := assetFn(path)
 			if err != nil {
 				templateErr = fmt.Errorf("%v for path '%s'", err, path)
-				break
+				continue
 			}
 
 			contents := string(buf)
@@ -372,15 +367,12 @@ func (s *HTMLEngine) loadAssets() error {
 				contents, err = s.middleware(name, buf)
 				if err != nil {
 					templateErr = fmt.Errorf("%v for name '%s'", err, name)
-					break
+					continue
 				}
 			}
 
 			// Add our funcmaps.
-			if _, err = tmpl.Funcs(emptyFuncs).Funcs(s.funcs).Parse(contents); err != nil {
-				templateErr = err
-				break
-			}
+			tmpl.Funcs(emptyFuncs).Funcs(s.funcs).Parse(contents)
 		}
 	}
 	return templateErr
@@ -420,10 +412,10 @@ func (s *HTMLEngine) layoutFuncsFor(name string, binding interface{}) {
 			}
 			return "", nil
 		},
-		// partial related to current page,
-		// it would be easier for adding pages' style/script inline
-		// for example when using partial_r '.script' in layout.html
-		// templates/users/index.html would load templates/users/index.script.html
+		//partial related to current page,
+		//it would be easier for adding pages' style/script inline
+		//for example when using partial_r '.script' in layout.html
+		//templates/users/index.html would load templates/users/index.script.html
 		"partial_r": func(partialName string) (template.HTML, error) {
 			ext := filepath.Ext(name)
 			root := name[:len(name)-len(ext)]
@@ -460,6 +452,8 @@ func (s *HTMLEngine) runtimeFuncsFor(name string, binding interface{}) {
 		tpl.Funcs(funcs)
 	}
 }
+
+var zero = time.Time{}
 
 // ExecuteWriter executes a template and writes its result to the w writer.
 func (s *HTMLEngine) ExecuteWriter(w io.Writer, name string, layout string, bindingData interface{}) error {

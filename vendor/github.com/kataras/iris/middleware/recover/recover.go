@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/context"
 )
 
 func getRequestLogs(ctx context.Context) string {
@@ -35,6 +35,7 @@ func New() context.Handler {
 					_, f, l, got := runtime.Caller(i)
 					if !got {
 						break
+
 					}
 
 					stacktrace += fmt.Sprintf("%s:%d\n", f, l)

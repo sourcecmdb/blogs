@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/context"
 
 	"github.com/ryanuber/columnize"
 )
@@ -41,7 +41,7 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 		}
 	}
 
-	// all except latency to string
+	//all except latency to string
 	var status, ip, method, path string
 	var latency time.Duration
 	var startTime, endTime time.Time
@@ -49,7 +49,7 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 
 	ctx.Next()
 
-	// no time.Since in order to format it well after
+	//no time.Since in order to format it well after
 	endTime = time.Now()
 	latency = endTime.Sub(startTime)
 
@@ -100,15 +100,12 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	if logFunc := l.config.LogFunc; logFunc != nil {
 		logFunc(endTime, latency, status, ip, method, path, message, headerMessage)
 		return
-	} else if logFuncCtx := l.config.LogFuncCtx; logFuncCtx != nil {
-		logFuncCtx(ctx, latency)
-		return
 	}
 
 	if l.config.Columns {
 		endTimeFormatted := endTime.Format("2006/01/02 - 15:04:05")
 		output := Columnize(endTimeFormatted, latency, status, ip, method, path, message, headerMessage)
-		_, _ = ctx.Application().Logger().Printer.Output.Write([]byte(output))
+		ctx.Application().Logger().Printer.Output.Write([]byte(output))
 		return
 	}
 	// no new line, the framework's logger is responsible how to render each log.
@@ -120,18 +117,13 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	if headerMessage != nil {
 		line += fmt.Sprintf(" %v", headerMessage)
 	}
-
-	// if context.StatusCodeNotSuccessful(ctx.GetStatusCode()) {
-	// 	ctx.Application().Logger().Warn(line)
-	// } else {
 	ctx.Application().Logger().Info(line)
-	// }
-
 }
 
 // Columnize formats the given arguments as columns and returns the formatted output,
 // note that it appends a new line to the end.
 func Columnize(nowFormatted string, latency time.Duration, status, ip, method, path string, message interface{}, headerMessage interface{}) string {
+
 	titles := "Time | Status | Latency | IP | Method | Path"
 	line := fmt.Sprintf("%s | %v | %4v | %s | %s | %s", nowFormatted, status, latency, ip, method, path)
 	if message != nil {
