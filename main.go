@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/kataras/iris/v12"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	app := iris.New()
-	app.Logger().SetLevel("debug")
-	app.Get("/", func(context iris.Context) {
-		context.HTML("<h1>Hello World</h1>")
-	})
+	app:= gin.Default()
 
-	app.Run(iris.Addr(":8080"), iris.WithoutServerError(iris.ErrServerClosed))
+	app.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+	app.Run(":8080") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
