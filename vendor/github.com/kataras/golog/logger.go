@@ -26,7 +26,7 @@ type Handler func(value *Log) (handled bool)
 
 // Logger is our golog.
 type Logger struct {
-	Prefix     string
+	Prefix     []byte
 	Level      Level
 	TimeFormat string
 	// if new line should be added on all log functions, even the `F`s.
@@ -78,8 +78,6 @@ func (l *Logger) releaseLog(log *Log) {
 	l.logs.Put(log)
 }
 
-var spaceBytes = []byte(" ")
-
 // we could use marshal inside Log but we don't have access to printer,
 // we could also use the .Handle with NopOutput too but
 // this way is faster:
@@ -90,31 +88,25 @@ var logHijacker = func(ctx *pio.Ctx) {
 		return
 	}
 
-	w := ctx.Printer
-
-	if l.Level != DisableLevel {
-		if level, ok := Levels[l.Level]; ok {
-			pio.WriteRich(w, level.Title, level.ColorCode, level.Style...)
-			w.Write(spaceBytes)
-		}
+	line := GetTextForLevel(l.Level, ctx.Printer.IsTerminal)
+	if line != "" {
+		line += " "
 	}
 
 	if t := l.FormatTime(); t != "" {
-		fmt.Fprint(w, t)
-		w.Write(spaceBytes)
+		line += t + " "
+	}
+	line += l.Message
+
+	var b []byte
+	if pref := l.Logger.Prefix; len(pref) > 0 {
+		b = append(pref, []byte(line)...)
+	} else {
+		b = []byte(line)
 	}
 
-	if prefix := l.Logger.Prefix; len(prefix) > 0 {
-		fmt.Fprintf(w, prefix)
-	}
-
-	fmt.Fprint(w, l.Message)
-
-	if l.Logger.NewLine {
-		fmt.Fprintln(w)
-	}
-
-	ctx.Store(nil, pio.ErrHandled)
+	ctx.Store(b, nil)
+	ctx.Next()
 }
 
 // NopOutput disables the output.
@@ -141,13 +133,14 @@ func (l *Logger) AddOutput(writers ...io.Writer) *Logger {
 
 // SetPrefix sets a prefix for this "l" Logger.
 //
-// The prefix is the text that is being presented
-// to the output right before the log's message.
+// The prefix is the first space-separated
+// word that is being presented to the output.
+// It's written even before the log level text.
 //
 // Returns itself.
 func (l *Logger) SetPrefix(s string) *Logger {
 	l.mu.Lock()
-	l.Prefix = s
+	l.Prefix = []byte(s)
 	l.mu.Unlock()
 	return l
 }
@@ -288,13 +281,6 @@ func (l *Logger) Warn(v ...interface{}) {
 func (l *Logger) Warnf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	l.Warn(msg)
-}
-
-// Warningf exactly the same as `Warnf`.
-// It's here for badger integration:
-// https://github.com/dgraph-io/badger/blob/ef28ef36b5923f12ffe3a1702bdfa6b479db6637/logger.go#L25
-func (l *Logger) Warningf(format string, args ...interface{}) {
-	l.Warnf(format, args...)
 }
 
 // Info will print when logger's Level is info or debug.
