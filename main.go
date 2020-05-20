@@ -6,7 +6,7 @@ import (
 
 func main() {
 	app:= gin.Default()
-
+	app.Use(gin.Logger())
 	app.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
