@@ -8,7 +8,7 @@ import (
 func main() {
 	//gin.SetMode(gin.ReleaseMode) // 设置为发布模式
 	gin.SetMode(gin.DebugMode)  // debug模式
-	gin.SetMode(gin.TestMode) // test测试模式
+	//gin.SetMode(gin.TestMode) // test测试模式
  	app := initRouter.SetupRouter()
 	_ = app.Run(":8080",)
 }
