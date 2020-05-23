@@ -9,7 +9,7 @@ import (
 
 func main() {
 	app := gin.Default()
-	app.Use(gin.Logger())
+	//app.Use(gin.Logger())
 
 	app.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 
