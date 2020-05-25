@@ -69,6 +69,7 @@ func SetupRouter() *gin.Engine {
 	{
 		UserRouter.GET("/:name", Handler.SaveUser)
 		UserRouter.GET("", Handler.UserSaveByQuery)
+		UserRouter.POST("/register", Handler.UserRegister)
 	}
 	return router
 }
