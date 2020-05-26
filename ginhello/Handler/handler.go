@@ -26,7 +26,7 @@ func UserRegister(c *gin.Context) {
 	//password := c.DefaultPostForm("password","123")
 	//passwordAgain:= c.DefaultPostForm("password","123")
 	//println("email",email,"password",password,"passwordAgin",passwordAgain)
-	var user model.Usermodel
+	var user model.UserModel
 	if err := c.ShouldBind(&user);err!=nil {
 		log.Println("err ->",err.Error())
 		//println("err ->",err.Error())
