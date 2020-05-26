@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 func TestAll(t *testing.T) {
 	//gin.SetMode(gin.TestMode)
 	fmt.Println("开始测试 Router 中的相关方法")
-	t.Run("测试获取Router所有用户", testIndexGetRouter)
+	//t.Run("测试获取Router所有用户", testIndexGetRouter)
 
 }
 

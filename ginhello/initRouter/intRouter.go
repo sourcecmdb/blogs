@@ -67,9 +67,10 @@ func SetupRouter() *gin.Engine {
 
 	UserRouter := router.Group("/user")
 	{
-		UserRouter.GET("/:name", Handler.SaveUser)
-		UserRouter.GET("", Handler.UserSaveByQuery)
+		//UserRouter.GET("/:name", Handler.SaveUser)
+		//UserRouter.GET("", Handler.UserSaveByQuery)
 		UserRouter.POST("/register", Handler.UserRegister)
+		UserRouter.POST("/login", Handler.UserLogin)
 	}
 	return router
 }
