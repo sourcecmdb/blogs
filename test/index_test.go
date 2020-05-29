@@ -2,13 +2,14 @@ package test
 
 import (
 	"fmt"
+	"github.com/sourcecmdb/blogs/initRouter"
 	"net/http"
 	"net/http/httptest"
 	_ "strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sourcecmdb/blogs/ginhello/initRouter"
+
 
 	"github.com/stretchr/testify/assert"
 )
