@@ -3,6 +3,7 @@ package initRouter
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sourcecmdb/blogs/handler"
+	"github.com/sourcecmdb/blogs/handler/article"
 	"github.com/sourcecmdb/blogs/middleware"
 	"github.com/sourcecmdb/blogs/utils"
 	"net/http"
@@ -11,8 +12,8 @@ import (
 
 func SetupRouter() *gin.Engine {
 	//router := gin.Default()
-	router:=gin.New()
-	router.Use(middleware.Logger(),gin.Recovery())
+	router := gin.New()
+	router.Use(middleware.Logger(), gin.Recovery())
 	//router.Use(middleware.Logger(),gin.Recovery())
 	router.Use(gin.Logger())
 	if mode := gin.Mode(); mode == gin.TestMode {
@@ -33,8 +34,25 @@ func SetupRouter() *gin.Engine {
 	{
 		userRouter.POST("/register", handler.UserRegister)
 		userRouter.POST("/login", handler.UserLogin)
-		userRouter.GET("/profile/", middleware.Auth(),handler.UserProfile)
-		userRouter.POST("/update",middleware.Auth(), handler.UpdateUserProfile)
+		userRouter.GET("/profile/", middleware.Auth(), handler.UserProfile)
+		userRouter.POST("/update", middleware.Auth(), handler.UpdateUserProfile)
 	}
+
+	aritcleRoute := router.Group("")
+	{
+		aritcleRoute.POST("/article", article.Insert)
+	}
+
+	//articleRouter := router.Group("")
+	//{
+	//	// 通过获取单篇文章
+	//	articleRouter.GET("/article/:id", article.GetOne)
+	//	// 获取所有文章
+	//	articleRouter.GET("/articles", article.GetAll)
+	//	// 添加一篇文章
+	//	articleRouter.POST("/article", article.Insert)
+	//	articleRouter.DELETE("/article/:id", article.DeleteOne)
+	//}
+
 	return router
 }
