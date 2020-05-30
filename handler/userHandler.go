@@ -3,15 +3,16 @@ package handler
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/sourcecmdb/blogs/model"
-	"github.com/sourcecmdb/blogs/utils"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sourcecmdb/blogs/model"
+	"github.com/sourcecmdb/blogs/utils"
 )
 
 func UserRegister(context *gin.Context) {
@@ -37,6 +38,8 @@ func UserLogin(context *gin.Context) {
 
 	u := user.QueryByEmail()
 	if u.Password == user.Password {
+		//context.Cookie("user_cookie",string(u.Id),10000,"/","localhost",false,true)
+		context.SetCookie("user_cookie", string(u.Id), 10000, "/", "127.0.0.1", false, true)
 		log.Println("登录成功", u.Email)
 		context.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"email": u.Email,
