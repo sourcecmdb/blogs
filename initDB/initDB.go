@@ -14,6 +14,6 @@ func init() {
 	if err != nil {
 		log.Panicln("err:", err.Error())
 	}
-	Db.SetMaxOpenConns(20)
-	Db.SetMaxIdleConns(20)
+	Db.SetMaxOpenConns(10)
+	Db.SetMaxIdleConns(10)
 }

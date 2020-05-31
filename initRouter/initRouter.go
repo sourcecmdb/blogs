@@ -6,11 +6,14 @@ import (
 	"github.com/sourcecmdb/blogs/handler/article"
 	"github.com/sourcecmdb/blogs/middleware"
 	"github.com/sourcecmdb/blogs/utils"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 	"path/filepath"
 )
 
 func SetupRouter() *gin.Engine {
+	//router := gin.Default()
 	//router := gin.Default()
 	router := gin.New()
 	router.Use(middleware.Logger(), gin.Recovery())
@@ -37,22 +40,17 @@ func SetupRouter() *gin.Engine {
 		userRouter.GET("/profile/", middleware.Auth(), handler.UserProfile)
 		userRouter.POST("/update", middleware.Auth(), handler.UpdateUserProfile)
 	}
-
-	aritcleRoute := router.Group("")
+	articleRouter := router.Group("")
 	{
-		aritcleRoute.POST("/article", article.Insert)
+		// 通过获取单篇文章
+		articleRouter.GET("/article/:id", article.GetOne)
+		// 获取所有文章
+		articleRouter.GET("/articles", article.GetAll)
+		// 添加一篇文章
+		articleRouter.POST("/article", article.Insert)
+		articleRouter.DELETE("/article/:id", article.DeleteOne)
 	}
-
-	//articleRouter := router.Group("")
-	//{
-	//	// 通过获取单篇文章
-	//	articleRouter.GET("/article/:id", article.GetOne)
-	//	// 获取所有文章
-	//	articleRouter.GET("/articles", article.GetAll)
-	//	// 添加一篇文章
-	//	articleRouter.POST("/article", article.Insert)
-	//	articleRouter.DELETE("/article/:id", article.DeleteOne)
-	//}
-
+	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	return router
 }
