@@ -17,4 +17,6 @@ func init() {
 	}
 	//Db.SetMaxOpenConns(10)
 	//Db.SetMaxIdleConns(10)
+	defer  Db.Close()
+	//Db.AutoMigrate(&user{})  数据库迁移
 }
